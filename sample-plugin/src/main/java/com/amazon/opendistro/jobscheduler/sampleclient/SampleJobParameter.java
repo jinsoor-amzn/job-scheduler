@@ -70,7 +70,7 @@ public class SampleJobParameter implements ScheduledJobParameter {
     }
 
     @Override
-    public Schedule getSchedue() {
+    public Schedule getSchedule() {
         return this.schedule;
     }
 

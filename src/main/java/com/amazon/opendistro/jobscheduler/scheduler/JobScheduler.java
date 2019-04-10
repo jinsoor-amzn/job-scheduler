@@ -131,7 +131,7 @@ public class JobScheduler {
             return false;
         }
 
-        Instant nextExecutionTime = jobParameter.getSchedue().getNextExecutionTime(jobInfo.getExpectedExecutionTime());
+        Instant nextExecutionTime = jobParameter.getSchedule().getNextExecutionTime(jobInfo.getExpectedExecutionTime());
         if (nextExecutionTime == null) {
             log.info("No next execution time for job {}", jobParameter.getName());
             return true;

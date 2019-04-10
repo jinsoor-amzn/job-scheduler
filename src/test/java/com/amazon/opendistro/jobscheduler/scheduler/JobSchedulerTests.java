@@ -254,7 +254,7 @@ public class JobSchedulerTests {
             }
 
             @Override
-            public Schedule getSchedue() {
+            public Schedule getSchedule() {
                 return schedule;
             }
 

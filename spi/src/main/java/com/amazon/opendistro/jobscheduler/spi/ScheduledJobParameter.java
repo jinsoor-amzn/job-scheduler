@@ -24,6 +24,6 @@ public interface ScheduledJobParameter extends ToXContentObject {
     String getName();
     Instant getLastUpdateTime(); // TODO: consider removing this method
     Instant getEnabledTime();
-    Schedule getSchedue();
+    Schedule getSchedule();
     boolean isEnabled();
 }
