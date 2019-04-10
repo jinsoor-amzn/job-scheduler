@@ -57,7 +57,7 @@ forbiddenApisTest.ignoreFailures = true
 esplugin {
     name 'opendistro-job-scheduler'
     description 'Open Distro for Elasticsearch job schduler plugin'
-    classname 'com.amazon.opendistro.jobscheduler.JobSchedulerPlugin'
+    classname 'com.amazon.opendistroforelasticsearch.jobscheduler.JobSchedulerPlugin'
 }
 
 

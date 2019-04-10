@@ -18,7 +18,7 @@ apply plugin: 'elasticsearch.esplugin'
 esplugin {
     name 'opendistro-job-scheduler-sample-extension'
     description 'Sample plugin that extends OpenDistro JobSchedulerPlugin'
-    classname 'com.amazon.opendistro.jobscheduler.sampleextension.SampleExtensionPlugin'
+    classname 'com.amazon.opendistroforelasticsearch.jobscheduler.sampleextension.SampleExtensionPlugin'
     extendedPlugins = ['opendistro-job-scheduler']
 }
 
