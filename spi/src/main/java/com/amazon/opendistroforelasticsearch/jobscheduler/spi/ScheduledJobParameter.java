@@ -22,7 +22,7 @@ import java.time.Instant;
 
 public interface ScheduledJobParameter extends ToXContentObject {
     String getName();
-    Instant getLastUpdateTime(); // TODO: consider removing this method
+    Instant getLastUpdateTime();
     Instant getEnabledTime();
     Schedule getSchedule();
     boolean isEnabled();

@@ -45,7 +45,6 @@ public class JobScheduler {
     public JobScheduler(ThreadPool threadPool) {
         this.threadPool = threadPool;
         this.scheduledJobInfo = new ScheduledJobInfo();
-        // TODO: need to think more about timezone and instant
         this.clock = Clock.systemDefaultZone();
     }
 
@@ -125,7 +124,7 @@ public class JobScheduler {
 
     @VisibleForTesting
     boolean reschedule(ScheduledJobParameter jobParameter, JobSchedulingInfo jobInfo, ScheduledJobRunner jobRunner) {
-        if (jobParameter.getEnabledTime() == null) { // TODO: consider moving enableTime to jobInfo
+        if (jobParameter.getEnabledTime() == null) {
             log.info("There is no enable time of job {}, this job should never be scheduled.",
                     jobParameter.getName());
             return false;
@@ -154,7 +153,6 @@ public class JobScheduler {
             jobRunner.runJob(jobParameter, context);
         };
 
-        // TODO: jobInfo.isDescheduled or jobParameter.isDescheduled ?
         if (jobInfo.isDescheduled()) {
             return false;
         }

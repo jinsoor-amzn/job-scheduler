@@ -113,7 +113,6 @@ public class JobSchedulerPlugin extends Plugin implements ExtensiblePlugin, Acti
             ScheduledJobParser jobParser = extension.getJobParser();
             ScheduledJobRunner runner = extension.getJobRunner();
             if(this.indexToJobProviders.containsKey(jobIndexName)) {
-                // TODO: log something?
                 continue;
             }
 
@@ -139,8 +138,6 @@ public class JobSchedulerPlugin extends Plugin implements ExtensiblePlugin, Acti
 
     private JobSweeper initSweeper(Settings settings, Client client, ClusterService clusterService, ThreadPool threadPool,
                                    NamedXContentRegistry registry, JobScheduler scheduler) {
-        // TODO: make this a separate method, consider moving some logic from sweeper constructor to this method
-        //       for example schedule periodical sweep job
         return new JobSweeper(settings, client, clusterService, threadPool, registry, this.indexToJobProviders, scheduler);
     }
 }

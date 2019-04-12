@@ -105,7 +105,6 @@ public class JobSweeper extends LifecycleListener implements IndexingOperationLi
         this.loadSettings(settings);
         this.addConfigListeners();
 
-        // TODO: consider moving this thread pool to plugin, out of sweeper
         this.fullSweepExecutor = Executors.newSingleThreadExecutor(
                 EsExecutors.daemonThreadFactory("opendistro_job_sweeper"));
         this.sweptJobs = new ConcurrentHashMap<>();
@@ -261,7 +260,7 @@ public class JobSweeper extends LifecycleListener implements IndexingOperationLi
             log.info("Running full sweep");
             TimeValue elapsedTime = getFullSweepElapsedTime();
             long delta = this.sweepPeriod.millis() - elapsedTime.millis();
-            if (delta < 20L) { // TODO: need to revisit this check
+            if (delta < 20L) {
                 this.fullSweepExecutor.submit(this::sweepAllShards);
             }
         };
@@ -320,7 +319,6 @@ public class JobSweeper extends LifecycleListener implements IndexingOperationLi
                     List<String> shardNodeIds = shardRoutingList.stream().map(ShardRouting::currentNodeId).collect(Collectors.toList());
                     sweepShard(shard.getKey(), new ShardNodes(localNodeId, shardNodeIds), null);
                 } catch (Exception e) {
-                    // TODO: do something in addition to logging?
                     log.info("Error while sweeping shard {}, error message: {}", shard.getKey(), e.getMessage());
                 }
             }
@@ -351,7 +349,6 @@ public class JobSweeper extends LifecycleListener implements IndexingOperationLi
                             .size(this.sweepPageMaxSize)
                             .query(QueryBuilders.matchAllQuery()));
 
-            // TODO: add retry
             SearchResponse response = this.client.search(jobSearchRequest).actionGet(this.sweepSearchTimeout);
             if (response.status() != RestStatus.OK) {
                 log.error("Error sweeping shard {}, failed querying jobs on this shard", shardId);
@@ -383,8 +380,6 @@ public class JobSweeper extends LifecycleListener implements IndexingOperationLi
             this.localNodeId = localNodeId;
             this.activeShardNodeIds = activeShardNodeIds;
             this.circle = new TreeMap<>();
-            // TODO: creating such TreeMap every time, is it too expensive?
-            // TODO: Consider sort activeShardNodeIds, and then calculate the reminder (hashCode % sizeOf(activeShardNodeIds))
             for (String node : activeShardNodeIds) {
                 for (int i = 0; i < VIRTUAL_NODE_COUNT; i++) {
                     this.circle.put(Murmur3HashFunction.hash(node + i), node);
