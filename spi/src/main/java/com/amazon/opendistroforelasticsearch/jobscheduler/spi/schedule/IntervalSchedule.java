@@ -29,6 +29,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * {@link Schedule} defined by interval (interval value & interval unit). Currently the finest unit supported is minute.
+ */
 public class IntervalSchedule implements Schedule {
 
     static final String START_TIME_FIELD = "start_time";

@@ -35,6 +35,9 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Components that handles job scheduling/descheduling.
+ */
 public class JobScheduler {
     private static final Logger log = LogManager.getLogger(JobScheduler.class);
 
@@ -145,9 +148,10 @@ public class JobScheduler {
 
             jobInfo.setExpectedPreviousExecutionTime(jobInfo.getExpectedExecutionTime());
             jobInfo.setActualPreviousExecutionTime(clock.instant());
-
+            // schedule next execution
             this.reschedule(jobParameter, jobInfo, jobRunner);
 
+            // invoke job runner
             JobExecutionContext context = new JobExecutionContext();
             context.setExpectedExecutionTime(jobInfo.getExpectedPreviousExecutionTime());
             jobRunner.runJob(jobParameter, context);

@@ -23,6 +23,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * Schedule XContent parser.
+ */
 public class ScheduleParser {
     public static Schedule parse(XContentParser parser) throws IOException {
         XContentParserUtils.ensureExpectedToken(XContentParser.Token.START_OBJECT, parser.currentToken(), parser::getTokenLocation);

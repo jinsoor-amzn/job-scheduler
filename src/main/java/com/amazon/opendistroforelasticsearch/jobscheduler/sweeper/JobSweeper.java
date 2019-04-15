@@ -23,6 +23,7 @@ import com.amazon.opendistroforelasticsearch.jobscheduler.spi.ScheduledJobRunner
 import com.amazon.opendistroforelasticsearch.jobscheduler.utils.VisibleForTesting;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.bulk.BackoffPolicy;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -41,6 +42,7 @@ import org.elasticsearch.common.lucene.uid.Versions;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.util.concurrent.EsExecutors;
+import org.elasticsearch.common.util.set.Sets;
 import org.elasticsearch.common.xcontent.LoggingDeprecationHandler;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.XContentHelper;
@@ -62,12 +64,17 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Sweeper component that handles job indexing and cluster changes.
+ */
 public class JobSweeper extends LifecycleListener implements IndexingOperationListener, ClusterStateListener {
     private static final Logger log = LogManager.getLogger(JobSweeper.class);
 
@@ -339,6 +346,7 @@ public class JobSweeper extends LifecycleListener implements IndexingOperationLi
 
         String searchAfter = startAfter == null ? "" : startAfter;
         while(searchAfter != null) {
+            // this.sweepSearchBackoff.
             SearchRequest jobSearchRequest = new SearchRequest()
                     .indices(shardId.getIndexName())
                     .preference("_shards:" + shardId.id() + "|_only_local")
@@ -349,7 +357,8 @@ public class JobSweeper extends LifecycleListener implements IndexingOperationLi
                             .size(this.sweepPageMaxSize)
                             .query(QueryBuilders.matchAllQuery()));
 
-            SearchResponse response = this.client.search(jobSearchRequest).actionGet(this.sweepSearchTimeout);
+            SearchResponse response = this.retry((searchRequest) -> this.client.search(searchRequest),
+                    jobSearchRequest, this.sweepSearchBackoff).actionGet(this.sweepSearchTimeout);
             if (response.status() != RestStatus.OK) {
                 log.error("Error sweeping shard {}, failed querying jobs on this shard", shardId);
                 return;
@@ -367,6 +376,27 @@ public class JobSweeper extends LifecycleListener implements IndexingOperationLi
                 searchAfter = lastHit.getId();
             }
         }
+    }
+
+    private<T, R> R retry(Function<T, R> function, T param, BackoffPolicy backoffPolicy) {
+        Set<RestStatus> retryalbeStatus = Sets.newHashSet(RestStatus.BAD_GATEWAY, RestStatus.GATEWAY_TIMEOUT,
+                RestStatus.SERVICE_UNAVAILABLE);
+        Iterator<TimeValue> iter = backoffPolicy.iterator();
+        do {
+            try {
+                return function.apply(param);
+            } catch (ElasticsearchException e) {
+                if(iter.hasNext() && retryalbeStatus.contains(e.status())) {
+                    try {
+                        Thread.sleep(iter.next().millis());
+                    } catch (InterruptedException ex) {
+                        throw e;
+                    }
+                } else {
+                    throw e;
+                }
+            }
+        } while(true);
     }
 
     private static class ShardNodes {

@@ -18,6 +18,9 @@ package com.amazon.opendistroforelasticsearch.jobscheduler.scheduler;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Job index, id and jobInfo mapping.
+ */
 public class ScheduledJobInfo {
     private Map<String, Map<String, JobSchedulingInfo>> jobInfoMap;
 

@@ -15,7 +15,10 @@
 
 package com.amazon.opendistroforelasticsearch.jobscheduler.spi.schedule;
 
+import com.cronutils.model.CronType;
+import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
 import com.cronutils.utils.VisibleForTesting;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -29,11 +32,15 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+/**
+ * UnixCron {@link Schedule} implementation. Refer to https://en.wikipedia.org/wiki/Cron for cron syntax.
+ */
 public class CronSchedule implements Schedule {
-
     static final String CRON_FIELD = "cron";
     static final String EXPRESSION_FIELD = "expression";
     static final String TIMEZONE_FIELD = "timezone";
+
+    private static CronParser cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
 
     private ZoneId timezone;
     private String expression;
@@ -43,7 +50,7 @@ public class CronSchedule implements Schedule {
     public CronSchedule(String expression, ZoneId timezone) {
         this.expression = expression;
         this.timezone = timezone;
-        this.executionTime = ExecutionTime.forCron(Schedule.cronParser.parse(this.expression));
+        this.executionTime = ExecutionTime.forCron(cronParser.parse(this.expression));
         clock = Clock.system(timezone);
     }
 
@@ -94,14 +101,13 @@ public class CronSchedule implements Schedule {
             Instant now = this.clock.instant();
             Optional<ZonedDateTime> lastExecutionTime = this.executionTime.lastExecution(ZonedDateTime.ofInstant(now, this.timezone));
             if (!lastExecutionTime.isPresent()) {
-                Instant currentTime = now;
-                return new Tuple<>(currentTime, currentTime);
+                return new Tuple<>(now, now);
             }
             realStartTime = lastExecutionTime.get().toInstant();
         }
         ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(realStartTime, this.timezone);
         ZonedDateTime newEndTime = executionTime.nextExecution(zonedDateTime).orElse(null);
-        return new Tuple<Instant, Instant>(realStartTime, newEndTime == null ? null : newEndTime.toInstant());
+        return new Tuple<>(realStartTime, newEndTime == null ? null : newEndTime.toInstant());
     }
 
     @Override

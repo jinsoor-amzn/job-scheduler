@@ -15,9 +15,6 @@
 
 package com.amazon.opendistroforelasticsearch.jobscheduler.spi.schedule;
 
-import com.cronutils.model.CronType;
-import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.parser.CronParser;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 
@@ -26,13 +23,34 @@ import java.time.Instant;
 
 public interface Schedule extends ToXContentObject {
 
-    CronParser cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
-
+    /**
+     * Gets next job execution time of give time parameter.
+     *
+     * @param time base time point
+     * @return next exection time since time parameter.
+     */
     Instant getNextExecutionTime(Instant time);
 
+    /**
+     * Calculates the time duration between next execution time and now.
+     *
+     * @return time duration between next execution and now.
+     */
     Duration nextTimeToExecute();
 
+    /**
+     * Gets the execution period starting at {@code startTime}.
+     *
+     * @param startTime start time of the period.
+     * @return the start time and end time of the period in the tuple.
+     */
     Tuple<Instant, Instant> getPeriodStartingAt(Instant startTime);
 
+    /**
+     * Returns if the job is running on time.
+     *
+     * @param lastExecutionTime last execution time.
+     * @return true if the job executes on time, otherwise false.
+     */
     Boolean runningOnTime(Instant lastExecutionTime);
 }

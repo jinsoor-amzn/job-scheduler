@@ -20,10 +20,32 @@ import org.elasticsearch.common.xcontent.ToXContentObject;
 
 import java.time.Instant;
 
+/**
+ * Job parameters that being used by the JobScheduler.
+ */
 public interface ScheduledJobParameter extends ToXContentObject {
+    /**
+     * @return job name.
+     */
     String getName();
+
+    /**
+     * @return job last update time.
+     */
     Instant getLastUpdateTime();
+
+    /**
+     * @return get job enabled time.
+     */
     Instant getEnabledTime();
+
+    /**
+     * @return job schedule.
+     */
     Schedule getSchedule();
+
+    /**
+     * @return true if job is enabled, false otherwise.
+     */
     boolean isEnabled();
 }
