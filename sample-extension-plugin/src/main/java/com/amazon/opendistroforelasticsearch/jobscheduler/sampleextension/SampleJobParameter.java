@@ -29,15 +29,13 @@ import java.time.Instant;
  * the job runner will watch.
  */
 public class SampleJobParameter implements ScheduledJobParameter {
-    // public static final String ID_FIELD = "id";
     public static final String NAME_FIELD = "name";
     public static final String ENABLED_FILED = "enabled";
     public static final String LAST_UPDATE_TIME_FIELD = "last_update_time";
     public static final String SCHEDULE_FIELD = "schedule";
-    public static final String ENABLED_TIME_FILED = "enable_time";
+    public static final String ENABLED_TIME_FILED = "enabled_time";
     public static final String INDEX_NAME_FIELD = "index_name_to_watch";
 
-    // private String jobId;
     private String jobName;
     private Instant lastUpdateTime;
     private Instant enabledTime;
@@ -49,7 +47,6 @@ public class SampleJobParameter implements ScheduledJobParameter {
     }
 
     public SampleJobParameter(String id, String name, String indexToWatch, Schedule schedule) {
-        // this.jobId = id;
         this.jobName = name;
         this.indexToWatch = indexToWatch;
         this.schedule = schedule;

@@ -16,9 +16,9 @@
 package com.amazon.opendistroforelasticsearch.jobscheduler.scheduler;
 
 import com.amazon.opendistroforelasticsearch.jobscheduler.spi.ScheduledJobParameter;
+import org.elasticsearch.threadpool.Scheduler;
 
 import java.time.Instant;
-import java.util.concurrent.ScheduledFuture;
 
 class JobSchedulingInfo {
     private String jobId;
@@ -27,7 +27,7 @@ class JobSchedulingInfo {
     private Instant actualPreviousExecutionTime;
     private Instant expectedPreviousExecutionTime;
     private Instant expectedExecutionTime;
-    private ScheduledFuture<?> scheduledFuture;
+    private Scheduler.ScheduledCancellable scheduledCancellable;
 
     JobSchedulingInfo(String jobId, ScheduledJobParameter jobParameter) {
         this.jobId = jobId;
@@ -58,8 +58,8 @@ class JobSchedulingInfo {
         return this.expectedExecutionTime;
     }
 
-    public ScheduledFuture<?> getScheduledFuture() {
-        return scheduledFuture;
+    public Scheduler.ScheduledCancellable getScheduledCancellable() {
+        return scheduledCancellable;
     }
 
     public void setDescheduled(boolean descheduled) {
@@ -78,8 +78,8 @@ class JobSchedulingInfo {
         this.expectedExecutionTime = expectedExecutionTime;
     }
 
-    public void setScheduledFuture(ScheduledFuture<?> scheduledFuture) {
-        this.scheduledFuture = scheduledFuture;
+    public void setScheduledCancellable(Scheduler.ScheduledCancellable scheduledCancellable) {
+        this.scheduledCancellable = scheduledCancellable;
     }
 
 }

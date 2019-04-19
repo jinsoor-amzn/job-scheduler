@@ -15,7 +15,7 @@
 
 buildscript {
     ext {
-        es_version = System.getProperty("es.version", "6.5.4")
+        es_version = System.getProperty("es.version", "6.7.1")
     }
 
     repositories {
@@ -33,7 +33,7 @@ plugins {
 }
 
 ext {
-    opendistroVersion = '0.7.0'
+    opendistroVersion = "${version}"
     isSnapshot = "true" == System.getProperty("build.snapshot", "true")
 }
 
@@ -47,7 +47,7 @@ ext {
 
 // TODO: enable
 licenseHeaders.enabled = true
-namingConventions.enabled = false
+testingConventions.enabled = false
 forbiddenApis.ignoreFailures = false
 
 dependencyLicenses.enabled = false

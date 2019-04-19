@@ -23,7 +23,7 @@ import com.amazon.opendistroforelasticsearch.jobscheduler.utils.VisibleForTestin
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.util.concurrent.FutureUtils;
+import org.elasticsearch.threadpool.Scheduler;
 import org.elasticsearch.threadpool.ThreadPool;
 
 import java.time.Clock;
@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,7 +77,7 @@ public class JobScheduler {
                 jobInfo = new JobSchedulingInfo(docId, scheduledJobParameter);
                 this.scheduledJobInfo.addJob(indexName, docId, jobInfo);
             }
-            if (jobInfo.getScheduledFuture() != null) {
+            if (jobInfo.getScheduledCancellable() != null) {
                 return true;
             }
 
@@ -113,10 +112,10 @@ public class JobScheduler {
         jobInfo.setDescheduled(true);
         jobInfo.setActualPreviousExecutionTime(null);
         jobInfo.setExpectedPreviousExecutionTime(null);
-        ScheduledFuture<?> scheduledFuture = jobInfo.getScheduledFuture();
+        Scheduler.ScheduledCancellable scheduledCancellable = jobInfo.getScheduledCancellable();
 
-        if (scheduledFuture != null && !scheduledFuture.isDone()) {
-            if (FutureUtils.cancel(scheduledFuture)) {
+        if (scheduledCancellable != null) {
+            if (scheduledCancellable.cancel()) {
                 this.scheduledJobInfo.removeJob(indexName, id);
             } else {
                 return false;
@@ -162,8 +161,8 @@ public class JobScheduler {
             return false;
         }
 
-        jobInfo.setScheduledFuture(this.threadPool.schedule(new TimeValue(duration.toNanos(), TimeUnit.NANOSECONDS),
-                JobSchedulerPlugin.OPEN_DISTRO_JOB_SCHEDULER_THREAD_POOL_NAME, runnable));
+        jobInfo.setScheduledCancellable(this.threadPool.schedule(runnable, new TimeValue(duration.toNanos(),
+                        TimeUnit.NANOSECONDS), JobSchedulerPlugin.OPEN_DISTRO_JOB_SCHEDULER_THREAD_POOL_NAME));
 
         return true;
     }

@@ -20,6 +20,7 @@ import com.amazon.opendistroforelasticsearch.jobscheduler.spi.ScheduledJobRunner
 import com.amazon.opendistroforelasticsearch.jobscheduler.spi.schedule.CronSchedule;
 import com.amazon.opendistroforelasticsearch.jobscheduler.spi.schedule.Schedule;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.threadpool.Scheduler;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,10 +36,9 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ScheduledFuture;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"rawtypes"})
 public class JobSchedulerTests {
     @Mock
     private ThreadPool threadPool;
@@ -60,17 +60,17 @@ public class JobSchedulerTests {
 
         Mockito.when(schedule.getNextExecutionTime(Mockito.any())).thenReturn(Instant.now().plus(1, ChronoUnit.MINUTES));
 
-        ScheduledFuture future = Mockito.mock(ScheduledFuture.class);
-        Mockito.when(this.threadPool.schedule(Mockito.any(), Mockito.anyString(), Mockito.any())).thenReturn(future);
+        Scheduler.ScheduledCancellable cancellable = Mockito.mock(Scheduler.ScheduledCancellable.class);
+        Mockito.when(this.threadPool.schedule(Mockito.any(), Mockito.any(), Mockito.anyString())).thenReturn(cancellable);
 
         boolean scheduled = this.scheduler.schedule("index", "job-id", jobParameter, runner);
         Assert.assertTrue(scheduled);
-        Mockito.verify(this.threadPool, Mockito.times(1)).schedule(Mockito.any(), Mockito.anyString(), Mockito.any());
+        Mockito.verify(this.threadPool, Mockito.times(1)).schedule(Mockito.any(), Mockito.any(), Mockito.anyString());
 
         scheduled = this.scheduler.schedule("index", "job-id", jobParameter, runner);
         Assert.assertTrue(scheduled);
         // already scheduled, no extra threadpool call
-        Mockito.verify(this.threadPool, Mockito.times(1)).schedule(Mockito.any(), Mockito.anyString(), Mockito.any());
+        Mockito.verify(this.threadPool, Mockito.times(1)).schedule(Mockito.any(), Mockito.any(), Mockito.anyString());
     }
 
     @Test
@@ -85,22 +85,22 @@ public class JobSchedulerTests {
     @Test
     public void testDeschedule_singleJob() {
         JobSchedulingInfo jobInfo = new JobSchedulingInfo("job-id", null);
-        ScheduledFuture future = Mockito.mock(ScheduledFuture.class);
-        jobInfo.setScheduledFuture(future);
-        Mockito.when(future.cancel(false)).thenReturn(false);
+        Scheduler.ScheduledCancellable scheduledCancellable = Mockito.mock(Scheduler.ScheduledCancellable.class);
+        jobInfo.setScheduledCancellable(scheduledCancellable);
+        Mockito.when(scheduledCancellable.cancel()).thenReturn(false);
         this.scheduler.getScheduledJobInfo().addJob("index-name", "job-id", jobInfo);
 
         // test future.cancel return false
         boolean descheduled = this.scheduler.deschedule("index-name", "job-id");
         Assert.assertFalse(descheduled);
-        Mockito.verify(future).cancel(false);
+        Mockito.verify(scheduledCancellable).cancel();
         Assert.assertFalse(this.scheduler.getScheduledJobInfo().getJobsByIndex("index-name").isEmpty());
 
         // test future.cancel return true
-        Mockito.when(future.cancel(false)).thenReturn(true);
+        Mockito.when(scheduledCancellable.cancel()).thenReturn(true);
         descheduled = this.scheduler.deschedule("index-name", "job-id");
         Assert.assertTrue(descheduled);
-        Mockito.verify(future, Mockito.times(2)).cancel(false);
+        Mockito.verify(scheduledCancellable, Mockito.times(2)).cancel();
         Assert.assertTrue(this.scheduler.getScheduledJobInfo().getJobsByIndex("index-name").isEmpty());
     }
 
@@ -109,15 +109,15 @@ public class JobSchedulerTests {
         Assert.assertTrue(this.scheduler.bulkDeschedule("index-name", null).isEmpty());
 
         JobSchedulingInfo jobInfo1 = new JobSchedulingInfo("job-id-1", null);
-        ScheduledFuture future1 = Mockito.mock(ScheduledFuture.class);
-        jobInfo1.setScheduledFuture(future1);
-        Mockito.when(future1.cancel(false)).thenReturn(false);
+        Scheduler.ScheduledCancellable scheduledCancellable1 = Mockito.mock(Scheduler.ScheduledCancellable.class);
+        jobInfo1.setScheduledCancellable(scheduledCancellable1);
+        Mockito.when(scheduledCancellable1.cancel()).thenReturn(false);
         this.scheduler.getScheduledJobInfo().addJob("index-name", "job-id-1", jobInfo1);
 
         JobSchedulingInfo jobInfo2 = new JobSchedulingInfo("job-id-2", null);
-        ScheduledFuture future2 = Mockito.mock(ScheduledFuture.class);
-        jobInfo2.setScheduledFuture(future2);
-        Mockito.when(future2.cancel(false)).thenReturn(true);
+        Scheduler.ScheduledCancellable scheduledCancellable2 = Mockito.mock(Scheduler.ScheduledCancellable.class);
+        jobInfo2.setScheduledCancellable(scheduledCancellable2);
+        Mockito.when(scheduledCancellable2.cancel()).thenReturn(true);
         this.scheduler.getScheduledJobInfo().addJob("index-name", "job-id-2", jobInfo2);
 
         List<String> ids = new ArrayList<>();
@@ -127,8 +127,8 @@ public class JobSchedulerTests {
         List<String> result = this.scheduler.bulkDeschedule("index-name", ids);
         Assert.assertEquals(1, result.size());
         Assert.assertTrue(result.contains("job-id-1"));
-        Mockito.verify(future1).cancel(false);
-        Mockito.verify(future2).cancel(false);
+        Mockito.verify(scheduledCancellable1).cancel();
+        Mockito.verify(scheduledCancellable2).cancel();
     }
 
     @Test
@@ -167,12 +167,12 @@ public class JobSchedulerTests {
         jobSchedulingInfo.setDescheduled(false);
 
         Mockito.when(schedule.getNextExecutionTime(Mockito.any())).thenReturn(Instant.now().plus(1, ChronoUnit.MINUTES));
-        ScheduledFuture future = Mockito.mock(ScheduledFuture.class);
-        Mockito.when(this.threadPool.schedule(Mockito.any(), Mockito.anyString(), Mockito.any())).thenReturn(future);
+        Scheduler.ScheduledCancellable cancellable = Mockito.mock(Scheduler.ScheduledCancellable.class);
+        Mockito.when(this.threadPool.schedule(Mockito.any(), Mockito.any(), Mockito.anyString())).thenReturn(cancellable);
 
         Assert.assertTrue(this.scheduler.reschedule(jobParameter, jobSchedulingInfo, null));
-        Assert.assertEquals(future, jobSchedulingInfo.getScheduledFuture());
-        Mockito.verify(this.threadPool).schedule(Mockito.any(), Mockito.anyString(), Mockito.any());
+        Assert.assertEquals(cancellable, jobSchedulingInfo.getScheduledCancellable());
+        Mockito.verify(this.threadPool).schedule(Mockito.any(), Mockito.any(), Mockito.anyString());
     }
 
     static ScheduledJobParameter buildScheduledJobParameter(String id, String name, Instant updateTime,
