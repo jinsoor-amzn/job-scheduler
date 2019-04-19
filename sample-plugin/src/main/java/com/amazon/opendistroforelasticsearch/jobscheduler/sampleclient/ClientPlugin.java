@@ -44,6 +44,7 @@ public class ClientPlugin extends Plugin implements JobSchedulerExtension {
     @Override
     public ScheduledJobRunner getJobRunner() {
         return (job, context) -> {
+            log.info("Thread name; " + Thread.currentThread().getName());
             log.info("SampleClient runner invoked.");
         };
     }

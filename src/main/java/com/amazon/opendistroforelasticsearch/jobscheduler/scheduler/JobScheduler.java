@@ -15,6 +15,7 @@
 
 package com.amazon.opendistroforelasticsearch.jobscheduler.scheduler;
 
+import com.amazon.opendistroforelasticsearch.jobscheduler.JobSchedulerPlugin;
 import com.amazon.opendistroforelasticsearch.jobscheduler.spi.JobExecutionContext;
 import com.amazon.opendistroforelasticsearch.jobscheduler.spi.ScheduledJobParameter;
 import com.amazon.opendistroforelasticsearch.jobscheduler.spi.ScheduledJobRunner;
@@ -162,7 +163,7 @@ public class JobScheduler {
         }
 
         jobInfo.setScheduledFuture(this.threadPool.schedule(new TimeValue(duration.toNanos(), TimeUnit.NANOSECONDS),
-                ThreadPool.Names.SAME, runnable));
+                JobSchedulerPlugin.OPEN_DISTRO_JOB_SCHEDULER_THREAD_POOL_NAME, runnable));
 
         return true;
     }

@@ -30,15 +30,16 @@ import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.io.stream.NamedWriteableRegistry;
 import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.util.concurrent.EsExecutors;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.env.NodeEnvironment;
 import org.elasticsearch.index.IndexModule;
-import org.elasticsearch.plugins.ActionPlugin;
 import org.elasticsearch.plugins.ExtensiblePlugin;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.threadpool.ExecutorBuilder;
+import org.elasticsearch.threadpool.FixedExecutorBuilder;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.watcher.ResourceWatcherService;
 
@@ -53,7 +54,9 @@ import java.util.ServiceLoader;
 import java.util.Set;
 
 
-public class JobSchedulerPlugin extends Plugin implements ExtensiblePlugin, ActionPlugin {
+public class JobSchedulerPlugin extends Plugin implements ExtensiblePlugin {
+
+    public static final String OPEN_DISTRO_JOB_SCHEDULER_THREAD_POOL_NAME = "open_distro_job_scheduler";
 
     private static final Logger log = LogManager.getLogger(JobSchedulerPlugin.class);
 
@@ -93,7 +96,13 @@ public class JobSchedulerPlugin extends Plugin implements ExtensiblePlugin, Acti
 
     @Override
     public List<ExecutorBuilder<?>> getExecutorBuilders(Settings settings) {
-        return Collections.emptyList();
+        final int processorCount = EsExecutors.numberOfProcessors(settings);
+
+        List<ExecutorBuilder<?>> executorBuilders = new ArrayList<>();
+        executorBuilders.add(new FixedExecutorBuilder(settings, OPEN_DISTRO_JOB_SCHEDULER_THREAD_POOL_NAME,
+                processorCount, 200, "opendistro.jobscheduler.threadpool"));
+
+        return executorBuilders;
     }
 
     @Override
