@@ -18,8 +18,5 @@ rootProject.name = 'opendistro-job-scheduler'
 include "spi"
 project(":spi").name = rootProject.name + "-spi"
 
-include "sample-plugin"
-project(":sample-plugin").name = rootProject.name + "-sample-client"
-
 include "sample-extension-plugin"
 project(":sample-extension-plugin").name = rootProject.name + "-sample-extension"
