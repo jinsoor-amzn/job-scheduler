@@ -9,9 +9,6 @@ Elasticsearch plugin developers can easily extend JobScheduler plugin to schedul
 aggregation query against raw data and save the aggregated data into a new index every hour, or keep
 monitoring the shard allocation by calling Elasticsearch API and post the output to a Webhook.
 
-## Documentation
-TODO
-
 ## Build
 The JobScheduler plugin uses the [Gradle](https://docs.gradle.org/4.10.2/userguide/userguide.html)
 build system.
