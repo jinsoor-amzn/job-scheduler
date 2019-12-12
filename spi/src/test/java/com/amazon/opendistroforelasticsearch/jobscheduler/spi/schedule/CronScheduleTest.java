@@ -44,7 +44,7 @@ public class CronScheduleTest {
 
     @Test
     public void testNextTimeToExecute() {
-        Instant now = Instant.now();
+        Instant now = Instant.ofEpochMilli(1576178620); // Thursday, December 12, 2019 7:23:40 PM GMT
         Clock testClock = Clock.fixed(now, ZoneId.systemDefault());
         this.cronSchedule.setClock(testClock);
 
@@ -58,7 +58,7 @@ public class CronScheduleTest {
 
     @Test
     public void testGetPeriodStartingAt() {
-        Instant now = Instant.now();
+        Instant now = Instant.ofEpochMilli(1576178620); // Thursday, December 12, 2019 7:23:40 PM GMT
         Instant currentMinute = Instant.ofEpochSecond(now.getEpochSecond() / 60 * 60);
         Instant nextMinute = currentMinute.plus(1L, ChronoUnit.MINUTES);
 
@@ -70,7 +70,7 @@ public class CronScheduleTest {
 
     @Test
     public void testGetPeriodStartingAt_nullStartTime() {
-        Instant now = Instant.now();
+        Instant now = Instant.ofEpochMilli(1576178620); // Thursday, December 12, 2019 7:23:40 PM GMT
 
         Clock testClock = Clock.fixed(now, ZoneId.systemDefault());
         this.cronSchedule.setClock(testClock);
@@ -88,7 +88,7 @@ public class CronScheduleTest {
     public void testGetPeriodStartingAt_noLastExecution() {
         ExecutionTime mockExecution = Mockito.mock(ExecutionTime.class);
         this.cronSchedule.setExecutionTime(mockExecution);
-        Instant now = Instant.now();
+        Instant now = Instant.ofEpochMilli(1576178620); // Thursday, December 12, 2019 7:23:40 PM GMT
         Clock testClock = Clock.fixed(now, ZoneId.systemDefault());
         this.cronSchedule.setClock(testClock);
 
@@ -103,7 +103,7 @@ public class CronScheduleTest {
 
     @Test
     public void testRunningOnTime() {
-        Instant now = Instant.now();
+        Instant now = Instant.ofEpochMilli(1576178620); // Thursday, December 12, 2019 7:23:40 PM GMT
 
         Clock testClock = Clock.fixed(now, ZoneId.systemDefault());
         this.cronSchedule.setClock(testClock);
@@ -130,7 +130,7 @@ public class CronScheduleTest {
 
     @Test
     public void testRunningOnTime_noLastExecution() {
-        Instant now = Instant.now();
+        Instant now = Instant.ofEpochMilli(1576178620); // Thursday, December 12, 2019 7:23:40 PM GMT
         Clock testClock = Clock.fixed(now, ZoneId.systemDefault());
         this.cronSchedule.setClock(testClock);
         ExecutionTime mockExecutionTime = Mockito.mock(ExecutionTime.class);
