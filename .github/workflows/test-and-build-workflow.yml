@@ -26,16 +26,15 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build with Gradle
         run: ./gradlew build
-      # This step uses the upload-artifact Github action: https://github.com/actions/upload-artifact
       - name: Upload Artifacts Plugin
         uses: actions/upload-artifact@v1
         if: always()
         with:
           name: job-scheduler-plugin
-          path: ./build/*
+          path: ./build
       - name: Upload Artifacts Sample Plugin
         uses: actions/upload-artifact@v1
         if: always()
         with:
-          name: job-scheduler-plugin
-          path: ./sample-extension-plugin/build/*
+          name: job-scheduler-sample-plugin
+          path: ./sample-extension-plugin/build
