@@ -26,6 +26,12 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: job-scheduler-plugin-failed
+          path: ./build/*
       - name: Create Artifact Path
         run: |
           mkdir -p job-scheduler-artifacts
